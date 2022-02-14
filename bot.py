@@ -46,7 +46,8 @@ def text_q(message):
     item1 = types.KeyboardButton('◀️ Назад')
     markup.add(item1)
     #вывод самого сообщения
-    bot.send_message(message.chat.id, 'Опишите ошибку с которой вы столкнулись.', reply_markup = markup)
+    sent = bot.send_message(message.chat.id, 'Опишите ошибку с которой вы столкнулись.', reply_markup = markup)
+    bot.register_next_step_handler(sent,bug)
 
    elif message.text == "🔥 F.A.Q.": 
     #элементы главного меню
@@ -98,5 +99,19 @@ def blup(message):
  connect.close()
 
  bot.send_message(message.chat.id, 'Я отправил ваш запрос админам, ожидайте')
+    
+def bug(message):
+ name=message.text
+ username = message.from_user.username
+
+ bot.send_message(ID_CHAT, 'Новое уведомление! \n Пользователь обнаружил новую ошибку в игре! Нужно обозначить тип ошибки в БД! Вот текст сообщения:\n\n' + name)
+ script_path = pathlib.Path(sys.argv[0]).parent  # абсолютный путь до каталога, где лежит скрипт
+ connect = sqlite3.connect(script_path / "telegramBD.db")  # формируем абсолютный путь до файла базы
+ cursor = connect.cursor()
+ cursor.execute("INSERT INTO Bugs (User_Text,username) VALUES (?,?)", (name,username,))
+ connect.commit()
+ connect.close()
+
+ bot.send_message(message.chat.id, 'Сообщение об ошибке было отправленно разработчикам! Спасибо за вашу наблюдательность!')
 
 bot.polling(none_stop=True)
